@@ -1,6 +1,6 @@
 import struct
 import numpy as np
-import IPython
+#import IPython
 import random
 import os
 import wavefile
@@ -14,7 +14,9 @@ convcmd = "ffmpeg -i ../{} ../{}.mpeg".format(sys.argv[1], name)
 
 wavcmd = "ffmpeg -i ../{} -vn -acodec pcm_s16le -ar 44100 -ac 2 ../{}.wav".format(sys.argv[1], name)
 
-#os.system(convcmd)
+print convcmd
+exit()
+os.system(convcmd)
 os.system(wavcmd)
 
 def wav_to_floats(filename):
@@ -27,26 +29,40 @@ a = np.array(signal)
 
 # bootstrap to identify a rough speaking volume
 
-y = []
-for i in range(1000):
+for i in range(1):
+    y = []
+    for i in range(1000):
 	x = []
 	for j in range(100):
-		x.append(a[random.randrange(a.size)])
+	    x.append(a[random.randrange(a.size)])
 	y.append(max(x))
-vol = min(y)
+    vol = min(y)
+    print(vol)
+
+#exit()
 
 print "START"
 gaps = []
 i = 0
-while i < len(a):
-	while i < len(a) and a[i] >= vol: #skip talking frames
-		i += 1
-	start = i # start of empty
-	while i < len(a) and a[i] < vol: #empty range
-		i += 1
-	if i - start >= 44100:
-		gaps.append((start, i)) #stop!
-	i += 1
+#while i < len(a):
+#	while i < len(a) and a[i] >= vol: #skip talking frames
+#		i += 1
+#	start = i # start of empty
+#	while i < len(a) and a[i] < vol: #empty range
+#		i += 1
+#	if i - start >= 44100:
+#		gaps.append((start, i)) #stop!
+for i,x in np.ndenumerate(a):
+    if a[i] >= vol:
+        continue
+    start = i
+    if a[i] < vol:
+        continue
+    if i - start >= 44100:
+        gaps.append(start + 22050, i - 22050)
+print(gaps)
+exit()
+
 
 start = 0
 
