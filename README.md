@@ -1,0 +1,2 @@
+# blecop
+Lecture Video Optimizer
