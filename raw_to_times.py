@@ -60,6 +60,7 @@ def timestamp(seconds):
 	return str(hours).zfill(2) + ":" + str(minutes).zfill(2) + ":" + "%06.3f" % seconds
 
 cmd = "ffmpeg -ss {start} -i ../penis.mpeg -t {length} -vcodec copy -acodec copy {filename}"
+cmd2 = "mencoder -ss {start} {length} -oac copy -ovc copy ../penis.mp4 -o {filename}"
 
 fout = open("files.txt", "w")
 print "EXTRACTING"
@@ -69,7 +70,7 @@ for i in range(len(gaps)):
 		print start / 44100.0, timestamp(start / 44100.0)
 		# print gaps[i][0] / 44100.0, timestamp(gaps[i][0] / 44100.0)
 		print (gaps[i][0]-start) / 44100.0, timestamp((gaps[i][0]-start) / 44100.0)
-		os.system(cmd.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c)))
+		os.system(cmd2.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c)))
 		fout.write("file segment{}.mp4\n".format(c))
 		c += 1
 	start = gaps[i][1]
