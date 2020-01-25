@@ -6,23 +6,14 @@ import os
 import wavefile
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import sys
+import glob
 
+"""
 def wav_to_floats(filename):
 	w = wavefile.load(filename)
 	return w[1][0]
 
 signal = wav_to_floats("../penis.wav")
-"""
-a = open("../sound", "rb").read()
-sound = []
-c = 0
-for i in range(0, len(a), 4):
-	if c % 1000000 == 0:
-		print c
-	val = struct.unpack("f", a[i:i+4])
-	sound.append(val)
-	c += 1
-"""
 
 a = np.array(signal)
 
@@ -49,15 +40,29 @@ while i < len(a):
 		gaps.append((start, i)) #stop!
 	i += 1
 print len(gaps)
-
+gay = open("gays", "w")
+gay.write(str(gaps))
+gay.close()
 """
-with open("indices", "w") as f:
-	for i in gaps:
-		s = str(i) + "\n"
-		f.write(s)
-"""
-print "START EXTRACT"
 
-ffmpeg_extract_subclip("../penis.mp4", float(gaps[0][0] / 44100.0), float(gaps[0][1] / 44100.0) , targetname="gaplol.mp4")
+gay = open("gays", "r").read()
+gaps = eval(gay)
 
-IPython.embed()
+start = 0
+
+print "EXTRACTING"
+c = 0
+for i in range(len(gaps)):
+	if (gaps[i][0] / 44100.0 - start / 44100.0) > 3:
+		ffmpeg_extract_subclip("../penis.mp4", float(start / 44100.0), float(gaps[i][0] / 44100.0) , targetname="segment{}.mp4".format(c))
+		c += 1
+	start = gaps[i][1]
+
+print "COMBINING"
+
+videos = glob.glob("segment*")
+with open("files.txt", "w") as fout:
+    for i in videos:
+        fout.write("file "+i+"\n")
+print videos
+os.system("ffmpeg -f concat -i files.txt -c copy -fflags +genpts merged.mp4")
