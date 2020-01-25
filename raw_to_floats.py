@@ -2,7 +2,7 @@ import struct
 import matplotlib.pyplot as plt
 
 
-a = open("sound", "rb").read()
+a = open("../sound", "rb").read()
 sound = []
 c = 0
 for i in range(0, len(a), 4):

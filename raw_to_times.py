@@ -1,9 +1,19 @@
 import struct
-import numpy
+import numpy as np
 import IPython
 import random
+import os
+import wavefile
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+import sys
 
-a = open("sound", "rb").read()
+def wav_to_floats(filename):
+	w = wavefile.load(filename)
+	return w[1][0]
+
+signal = wav_to_floats("../penis.wav")
+"""
+a = open("../sound", "rb").read()
 sound = []
 c = 0
 for i in range(0, len(a), 4):
@@ -12,39 +22,42 @@ for i in range(0, len(a), 4):
 	val = struct.unpack("f", a[i:i+4])
 	sound.append(val)
 	c += 1
+"""
 
-a = numpy.array(a)
+a = np.array(signal)
 
 # bootstrap to identify a rough speaking volume
 
 y = []
 for i in range(1000):
 	x = []
-	for i in range(100):
+	for j in range(100):
 		x.append(a[random.randrange(a.size)])
 	y.append(max(x))
 vol = min(y)
 
-indices = []
+print "START"
+gaps = []
+i = 0
+while i < len(a):
+	while i < len(a) and a[i] >= vol: #skip talking frames
+		i += 1
+	start = i # start of empty
+	while i < len(a) and a[i] < vol: #empty range
+		i += 1
+	if i - start >= 44100:
+		gaps.append((start, i)) #stop!
+	i += 1
+print len(gaps)
 
-for i, x in np.nditer(a):
-	if x > vol:
-		indices.append(i)
-
-curr = 0
-start = 0
-times = []
-for i in indices:
-	if i == curr + 1:
-		pass
-	else:
-		times.append((start, curr))
-		start = curr
-	curr += 1
-
+"""
 with open("indices", "w") as f:
-	for i in times:
-		s = str(times[0]) + str(times[1]) + "\n"
+	for i in gaps:
+		s = str(i) + "\n"
 		f.write(s)
+"""
+print "START EXTRACT"
+
+ffmpeg_extract_subclip("../penis.mp4", float(gaps[0][0] / 44100.0), float(gaps[0][1] / 44100.0) , targetname="gaplol.mp4")
 
 IPython.embed()
