@@ -4,7 +4,6 @@ import IPython
 import random
 import os
 import wavefile
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 import sys
 import glob
 
@@ -50,12 +49,27 @@ gaps = eval(gay)
 
 start = 0
 
+talks = []
+
+def timestamp(seconds):
+	hours = int(seconds) // 3600
+	seconds -= hours * 3600
+	minutes = int(seconds) // 60
+	seconds -= minutes * 60
+	seconds = round(seconds, 3)
+	return str(hours).zfill(2) + ":" + str(minutes).zfill(2) + ":" + "%06.3f" % seconds
+
+cmd = "ffmpeg -ss {start} -i ../penis.mpeg -t {length} -vcodec copy -acodec copy {filename}"
+
 fout = open("files.txt", "w")
 print "EXTRACTING"
 c = 0
 for i in range(len(gaps)):
 	if (gaps[i][0] / 44100.0 - start / 44100.0) > 2:
-		ffmpeg_extract_subclip("../penis.mp4", float(start / 44100.0), float(gaps[i][0] / 44100.0), targetname="segment{}.mp4".format(c))
+		print start / 44100.0, timestamp(start / 44100.0)
+		# print gaps[i][0] / 44100.0, timestamp(gaps[i][0] / 44100.0)
+		print (gaps[i][0]-start) / 44100.0, timestamp((gaps[i][0]-start) / 44100.0)
+		os.system(cmd.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c)))
 		fout.write("file segment{}.mp4\n".format(c))
 		c += 1
 	start = gaps[i][1]
