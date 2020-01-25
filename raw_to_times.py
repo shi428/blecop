@@ -50,19 +50,17 @@ gaps = eval(gay)
 
 start = 0
 
+fout = open("files.txt", "w")
 print "EXTRACTING"
 c = 0
 for i in range(len(gaps)):
-	if (gaps[i][0] / 44100.0 - start / 44100.0) > 3:
-		ffmpeg_extract_subclip("../penis.mp4", float(start / 44100.0), float(gaps[i][0] / 44100.0) , targetname="segment{}.mp4".format(c))
+	if (gaps[i][0] / 44100.0 - start / 44100.0) > 2:
+		ffmpeg_extract_subclip("../penis.mp4", float(start / 44100.0), float(gaps[i][0] / 44100.0), targetname="segment{}.mp4".format(c))
+		fout.write("file segment{}.mp4\n".format(c))
 		c += 1
 	start = gaps[i][1]
 
+fout.close()
 print "COMBINING"
 
-videos = glob.glob("segment*")
-with open("files.txt", "w") as fout:
-    for i in videos:
-        fout.write("file "+i+"\n")
-print videos
 os.system("ffmpeg -f concat -i files.txt -c copy -fflags +genpts merged.mp4")
