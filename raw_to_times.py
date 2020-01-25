@@ -78,3 +78,5 @@ fout.close()
 print "COMBINING"
 
 os.system("ffmpeg -f concat -i files.txt -c copy -fflags +genpts merged.mp4")
+print "DELETING"
+os.system("rm segment*)
