@@ -7,12 +7,21 @@ import wavefile
 import sys
 import glob
 
-"""
+
+name = sys.argv[1].split(".")[0]
+
+convcmd = "ffmpeg -i ../{} ../{}.mpeg".format(sys.argv[1], name)
+
+wavcmd = "ffmpeg -i ../{} -vn -acodec pcm_s16le -ar 44100 -ac 2 ../{}.wav".format(sys.argv[1], name)
+
+#os.system(convcmd)
+os.system(wavcmd)
+
 def wav_to_floats(filename):
 	w = wavefile.load(filename)
 	return w[1][0]
 
-signal = wav_to_floats("../penis.wav")
+signal = wav_to_floats("../{}.wav".format(name))
 
 a = np.array(signal)
 
@@ -38,14 +47,6 @@ while i < len(a):
 	if i - start >= 44100:
 		gaps.append((start, i)) #stop!
 	i += 1
-print len(gaps)
-gay = open("gays", "w")
-gay.write(str(gaps))
-gay.close()
-"""
-
-gay = open("gays", "r").read()
-gaps = eval(gay)
 
 start = 0
 
@@ -59,10 +60,9 @@ def timestamp(seconds):
 	seconds = round(seconds, 3)
 	return str(hours).zfill(2) + ":" + str(minutes).zfill(2) + ":" + "%06.3f" % seconds
 
-cmd = "ffmpeg -ss {start} -i ../penis.mpeg -t {length} -vcodec copy -acodec copy {filename}"
-cmd2 = "mencoder -ss {start} {length} -oac copy -ovc copy ../penis.mp4 -o {filename}"
+cmd = "ffmpeg -ss {start} -i ../{name}.mpeg -t {length} -vcodec copy -acodec copy ../{filename}"
 
-fout = open("files.txt", "w")
+fout = open("../files.txt", "w")
 print "EXTRACTING"
 c = 0
 for i in range(len(gaps)):
@@ -70,14 +70,14 @@ for i in range(len(gaps)):
 		print start / 44100.0, timestamp(start / 44100.0)
 		# print gaps[i][0] / 44100.0, timestamp(gaps[i][0] / 44100.0)
 		print (gaps[i][0]-start) / 44100.0, timestamp((gaps[i][0]-start) / 44100.0)
-		os.system(cmd2.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c)))
-		fout.write("file segment{}.mp4\n".format(c))
+		os.system(cmd.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c), name=name))
+		fout.write("file segment{}.mpeg\n".format(c))
 		c += 1
 	start = gaps[i][1]
 
 fout.close()
 print "COMBINING"
 
-os.system("ffmpeg -f concat -i files.txt -c copy -fflags +genpts merged.mp4")
+os.system("ffmpeg -f concat -i ../files.txt -c copy -fflags +genpts ../merged.mpeg")
 print "DELETING"
-os.system("rm segment*)
+os.system("rm ../segment*")
