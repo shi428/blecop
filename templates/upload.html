@@ -1,0 +1,43 @@
+<html>
+
+	<head>
+	  <link rel="stylesheet" href="/static/styles/upload.css">
+	</head>
+
+	{% include 'nav.html' %}
+
+	<style>
+		div.title {
+			background: brown;
+		}
+
+		h1 {
+			background: brown;
+			color: white;
+			margin-top: 11px;
+		}
+
+		div.center {
+			background: lightgrey;
+		}
+
+	</style>
+
+	<div class="frame">
+		<form method=post enctype=multipart/form-data>
+			<div class="center">
+				<div class="title">
+					<h1>Drop file to upload</h1>
+				</div>
+
+					<div class="dropzone">
+						<img src="http://100dayscss.com/codepen/upload.svg" class="upload-icon" />
+						<input type="file" name="file" class="upload-input" />
+					</div>
+
+					<button type="submit" class="btn" name="uploadbutton">Upload file</button>
+
+			</div>
+		</form>
+	</div>
+</html>

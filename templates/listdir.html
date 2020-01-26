@@ -1,0 +1,33 @@
+<html>
+
+{% include 'nav.html' %}
+
+<style>
+	div.div1 {
+	  width: 300px;
+		height: 100px;
+	}
+
+	div.div2 {
+		background-color: brown;
+	}
+</style>
+
+<body>
+
+{%for i in range(0, len)%} 
+
+<center>
+	<div style="display: table; overflow: hidden;" class="div1">
+	  <div style="display: table-cell; vertical-align: middle;" class="div2">
+		<ul style="background-color: brown">
+			<a style="color: lightgrey; background-color: brown;" href="/watch?fname={{ files[i] }}">{{ files[i] }}</a>
+		</ul>
+	  </div>
+	</div>
+<br>
+{%endfor%} 
+
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<html>
+
+{% include 'nav.html' %}
+
+<center>
+	<h1>	BLecOpS </h1>
+	<hr>
+</center>
+
+<style>
+	hr {
+		margin-top: 10px;
+		border-radius: 5px;
+		border-color: violet;
+		width: 85%;
+	}
+	p {
+		margin-left: 300px;
+		margin-right: 300px;
+		font-size: 20px;
+		text-align: justify;
+	}
+	h2 {
+		text-align: center;
+	}
+	body {
+		color: gold;
+	}
+</style>
+
+<br>
+
+<h2> Introduction </h2>
+
+<body>
+	<p>
+		BLecOpS, the Boilermaker's Lecture Optimizing System, is a program intended on making viewing digital lectures a more efficient process. When in person, lecturers spend time writing on the board or quietly pondering without any speaking, amounting to wasted time. By removing these portions of the lecture, you are left with a shorter video comprised of only the important parts -- where information is being spoken.
+
+		A one hour video can often be condensed into fourty five or even thirty minutes, cutting out over a quarter to half of the video that was otherwise wasted time. With this, you can view more lectures in less time, optimizing your studying time.
+	</p>
+</body>
+
+<h2> Methodology </h2>
+<body>
+	<p>
+		BlecOpS first determines a speaking volume relative to the video. With this parameter, the program then identifies portions of the videos to remove and portions of the videos to keep. This is done with a statistical sampling technique known as <it> bootstrapping. </it>
+	</p>
+	<br>
+	<p>
+		BlecOpS generates 100 audio samples from the lecture video and identifies the maximum volume and repeats this process 1000 times. This list of maximum samples corresponds to 1000 different samples of talking, as talking should naturally be the loudest parts of the video. BlecOpS then takes the minimum of these 1000 samples as the quietest talking volume in the video. Any part of the video quieter than this quietest talking volume is then determined to not have any talking, and thus cut. 1000 samples are used to ensure the asymptotic convergence to the peak mode of the distribution.
+	</p>
+</body>
+
+</html>
