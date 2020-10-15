@@ -1,86 +1,83 @@
+import os
+import struct
+import numpy as np
+import random
+import os
+import wavefile
+import sys
+import glob
+
 def convert_mp4(fname):
-  import struct
-  import numpy as np
-  import IPython
-  import random
-  import os
-  import wavefile
-  import sys
-  import glob
+	
+	abs_file_path = os.path.abspath(fname)
+	name = os.path.basename(abs_file_path)
+	name_without_extension = name.split(".")[0]
 
-  name = fname.split(".")[0]
-  if not os.path.exists("../" + name):
-    os.mkdir("../" + name)
+	print(name)
+	print(abs_file_path)
 
-  convcmd = "ffmpeg -i ../uploads/{} -vcodec mpeg2video ../{}/{}.mpeg".format(fname, name, name)
+	print("Obtaining audio stream")
+	os.system("ffmpeg -hide_banner -loglevel warning -i {fpath} -vn -acodec pcm_s16le -ar 44100 -ac 2 ./{out:}.wav".format(
+			fpath=abs_file_path,
+			out=name_without_extension
+	))
 
-  wavcmd = "ffmpeg -i ../{} -vn -acodec pcm_s16le -ar 44100 -ac 2 ../{}/{}.wav".format(fname, name, name)
+	vols = np.array(
+			wavefile.load("./{fname:}.wav".format(fname=name_without_extension))[1][0]
+	)
 
-  os.system(convcmd)
-  os.system(wavcmd)
+	size = vols.size
 
-  def wav_to_floats(filename):
-    w = wavefile.load(filename)
-    return w[1][0]
+	vol = min(
+			[
+					max([vols[random.randrange(size)] for j in range(100)]) for i in range(1000)
+			]
+	)
 
-  signal = wav_to_floats("../{}/{}.wav".format(name, name))
+	# bootstrap to identify a rough speaking volume
 
-  a = np.array(signal)
+	print("Identifying frames")
+	gaps = []
+	i = 0
+	start = 0
+	while i < size:
+			while i < size and vols[i] >= vol:
+					i += 1
+			start = i
 
-  # bootstrap to identify a rough speaking volume
+			while i < size and vols[i] < vol:
+					i += 1
+			if i - start >= 44100:
+					gaps.append((start, i))	
 
-  y = []
-  for i in range(1000):
-    x = []
-    for j in range(100):
-      x.append(a[random.randrange(a.size)])
-    y.append(max(x))
-  vol = min(y)
+	start = 0
+	talks = []
 
-  print "START"
-  gaps = []
-  i = 0
-  while i < len(a):
-    while i < len(a) and a[i] >= vol: #skip talking frames
-      i += 1
-    start = i # start of empty
-    while i < len(a) and a[i] < vol: #empty range
-      i += 1
-    if i - start >= 44100:
-      gaps.append((start, i)) #stop!
-    i += 1
+	def timestamp(seconds):
+		hours = int(seconds) // 3600
+		seconds -= hours * 3600
+		minutes = int(seconds) // 60
+		seconds -= minutes * 60
+		seconds = round(seconds, 3)
+		return str(hours).zfill(2) + ":" + str(minutes).zfill(2) + ":" + "%06.3f" % seconds
 
-  start = 0
+	split_cmd = "ffmpeg -hide_banner -loglevel warning -ss {start} -i ./{name}.mp4 -t {length} -async 1 ./{filename}"
 
-  talks = []
+	fout = open("./files.txt", "w")
+	print("EXTRACTING")
+	c = 0
+	for i in range(len(gaps)):
+		if (gaps[i][0] / 44100.0 - start / 44100.0) > 2:
+			print(start / 44100.0, timestamp(start / 44100.0))
+			print(gaps[i][0]-start) / 44100.0, timestamp((gaps[i][0]-start) / 44100.0)
+			os.system(split_cmd.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mp4".format(c), name=name_without_extension))
+			fout.write("file segment{}.mp4\n".format(c))
+			c += 1
+		start = gaps[i][1]
+	fout.close()
 
-  def timestamp(seconds):
-    hours = int(seconds) // 3600
-    seconds -= hours * 3600
-    minutes = int(seconds) // 60
-    seconds -= minutes * 60
-    seconds = round(seconds, 3)
-    return str(hours).zfill(2) + ":" + str(minutes).zfill(2) + ":" + "%06.3f" % seconds
+	print("COMBINING")
 
-  cmd = "ffmpeg -ss {start} -i ../{name}/{name}.mpeg -t {length} -vcodec copy -acodec copy ../{name}/{filename}"
-
-  fout = open("../{}/files.txt".format(name), "w")
-  print "EXTRACTING"
-  c = 0
-  for i in range(len(gaps)):
-    if (gaps[i][0] / 44100.0 - start / 44100.0) > 2:
-      print start / 44100.0, timestamp(start / 44100.0)
-      # print gaps[i][0] / 44100.0, timestamp(gaps[i][0] / 44100.0)
-      print (gaps[i][0]-start) / 44100.0, timestamp((gaps[i][0]-start) / 44100.0)
-      os.system(cmd.format(start=timestamp(start / 44100.0), length=timestamp(gaps[i][0] / 44100.0 - start / 44100.0), filename="segment{}.mpeg".format(c), name=name))
-      fout.write("file segment{}.mpeg\n".format(c))
-      c += 1
-    start = gaps[i][1]
-
-  fout.close()
-  print "COMBINING"
-
-  os.system("ffmpeg -f concat -i ../{}/files.txt -c copy -fflags +genpts ../{}/merged.mpeg".format(name, name))
-  print "DELETING"
-  os.system("rm ../{}/segment*".format(name))
-  os.system("ffmpeg -i ../{}/merged.mpeg -strict -2 ./static/converted/{}.mp4".format(name, name))
+	os.system("ffmpeg -f concat -i ./files.txt -c copy ./merged.mp4")
+	os.system("rm ./segment*")
+	os.system("rm ./files.txt")
